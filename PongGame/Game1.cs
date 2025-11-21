@@ -8,12 +8,15 @@ namespace PongGame
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
-
+       
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+            _graphics.PreferredBackBufferWidth = 800;  
+            _graphics.PreferredBackBufferHeight = 600; 
+            _graphics.ApplyChanges();
         }
 
         protected override void Initialize()
@@ -42,9 +45,8 @@ namespace PongGame
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.Black);
+            GraphicsDevice.Clear(new Color(34,34,34));
 
-            // TODO: Add your drawing code here
 
             base.Draw(gameTime);
         }
