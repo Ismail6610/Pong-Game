@@ -26,7 +26,7 @@ namespace PongGame
         float ballSize = 20f;
         Vector2 ballVelocity = new Vector2(300f, 300f); // X and Y speeds
 
-
+        
 
         public Game1()
         {
@@ -66,53 +66,69 @@ namespace PongGame
 
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
             KeyboardState keyboardState = Keyboard.GetState();
-            if (keyboardState.IsKeyDown(Keys.W))
-            {
-                player1Position.Y -= 500f * deltaTime;
-            }
-            if (keyboardState.IsKeyDown(Keys.S))
-            {
-                player1Position.Y += 500f * deltaTime;
-            }
 
-            //Player 2 controls
+
+            if (keyboardState.IsKeyDown(Keys.W))
+                player1Position.Y -= 500f * deltaTime;
+            if (keyboardState.IsKeyDown(Keys.S))
+                player1Position.Y += 500f * deltaTime;
+
             if (keyboardState.IsKeyDown(Keys.Up))
-            {
                 player2Position.Y -= 500f * deltaTime;
-            }
             if (keyboardState.IsKeyDown(Keys.Down))
-            {
                 player2Position.Y += 500f * deltaTime;
-            }
+
+
             player1Position.Y = Math.Clamp(player1Position.Y, 0, _graphics.PreferredBackBufferHeight - player1height);
             player2Position.Y = Math.Clamp(player2Position.Y, 0, _graphics.PreferredBackBufferHeight - player2height);
 
-            ballPosition += ballVelocity* deltaTime;
+           // ballVelocity.X *= -1;
+            ballPosition += ballVelocity * deltaTime;
+
+
+            if (ballPosition.Y <= 0)
+            {
+                ballPosition.Y = 0;
+                ballVelocity.Y *= -1;
+            }
+            else if (ballPosition.Y + ballSize >= _graphics.PreferredBackBufferHeight)
+            {
+                ballPosition.Y = _graphics.PreferredBackBufferHeight - ballSize;
+                ballVelocity.Y *= -1;
+            }
 
             Rectangle ballRect = new Rectangle((int)ballPosition.X, (int)ballPosition.Y, (int)ballSize, (int)ballSize);
             Rectangle player1Rect = new Rectangle((int)player1Position.X, (int)player1Position.Y, (int)player1width, (int)player1height);
             Rectangle player2Rect = new Rectangle((int)player2Position.X, (int)player2Position.Y, (int)player2width, (int)player2height);
 
-            if(ballRect.Intersects(player1Rect) || ballRect.Intersects(player2Rect))
+            if (ballRect.Intersects(player1Rect))
             {
-                ballVelocity.X = -ballVelocity.X;
-            }
+                ballPosition.X = player1Position.X + player1width; 
+                ballVelocity.X *= -1;
 
-            if (ballPosition.Y <= 0 || ballPosition.Y + ballSize >= _graphics.PreferredBackBufferHeight)
+                float paddleCenter = player1Position.Y + player1height / 2;
+                float ballCenter = ballPosition.Y + ballSize / 2;
+                float normalizedDiff = (ballCenter - paddleCenter) / (player1height / 2);
+                ballVelocity.Y = normalizedDiff * 300f; 
+            }
+            else if (ballRect.Intersects(player2Rect))
             {
-                ballVelocity.Y *= -1; 
+                ballPosition.X = player2Position.X - ballSize;
+                ballVelocity.X *= -1;
+                float paddleCenter = player2Position.Y + player2height / 2;
+                float ballCenter = ballPosition.Y + ballSize / 2;
+                float normalizedDiff = (ballCenter - paddleCenter) / (player2height / 2);
+                ballVelocity.Y = normalizedDiff * 300f; 
             }
-
-
-
 
             base.Update(gameTime);
         }
+
 
         protected override void Draw(GameTime gameTime)
         {
