@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SharpDX.Win32;
+using System;
 
 namespace PongGame
 {
@@ -33,7 +34,7 @@ namespace PongGame
 
         protected override void Initialize()
         {
-            //commits
+            
             base.Initialize();
         }
 
@@ -54,6 +55,29 @@ namespace PongGame
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
+
+            float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            KeyboardState keyboardState = Keyboard.GetState();
+            if (keyboardState.IsKeyDown(Keys.W))
+            {
+                player1Position.Y -= 500f * deltaTime;
+            }
+            if (keyboardState.IsKeyDown(Keys.S))
+            {
+                player1Position.Y += 500f * deltaTime;
+            }
+
+            //Player 2 controls
+            if (keyboardState.IsKeyDown(Keys.Up))
+            {
+                player2Position.Y -= 500f * deltaTime;
+            }
+            if (keyboardState.IsKeyDown(Keys.Down))
+            {
+                player2Position.Y += 500f * deltaTime;
+            }
+            player1Position.Y = Math.Clamp(player1Position.Y, 0, _graphics.PreferredBackBufferHeight - player1height);
+            player2Position.Y = Math.Clamp(player2Position.Y, 0, _graphics.PreferredBackBufferHeight - player2height);
 
             base.Update(gameTime);
         }
