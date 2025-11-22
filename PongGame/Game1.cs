@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace PongGame
 {
@@ -38,6 +39,13 @@ namespace PongGame
         Rectangle startButtonRect = Rectangle.Empty;
         Color startButtonColor = Color.White;
         string title = "PONG GAME";
+
+        int scorePlayer1 = 0;
+        int scorePlayer2 = 0;
+
+        float baseBallSpeed = 300f;
+        float speedIncreaseTimer = 0f;
+        float speedIncreaseInterval = 5f;
 
         public Game1()
         {
@@ -76,6 +84,16 @@ namespace PongGame
 
            
             font = Content.Load<SpriteFont>("MenuFont");
+        }
+
+        public void ResetBall()
+        {
+            ballPosition = new Vector2(_graphics.PreferredBackBufferWidth / 2 - ballSize / 2,
+                                       _graphics.PreferredBackBufferHeight / 2 - ballSize / 2);
+            Random rand = new Random();
+            float dirX = rand.Next(0, 2) == 0 ? -1f : 1f;
+            float dirY = rand.Next(0, 2) == 0 ? -1f : 1f;
+            ballVelocity = new Vector2(baseBallSpeed * dirX, baseBallSpeed * dirY);
         }
 
         protected override void Update(GameTime gameTime)
@@ -144,6 +162,13 @@ namespace PongGame
                 ballVelocity.Y *= -1;
             }
 
+            speedIncreaseTimer += deltaTime;
+            if(speedIncreaseTimer >= speedIncreaseInterval)
+            {
+                speedIncreaseTimer = 0f;
+                ballVelocity *= 1.05f;
+            }
+
             Rectangle ballRect = new Rectangle((int)ballPosition.X, (int)ballPosition.Y, (int)ballSize, (int)ballSize);
             Rectangle player1Rect = new Rectangle((int)player1Position.X, (int)player1Position.Y, (int)player1width, (int)player1height);
             Rectangle player2Rect = new Rectangle((int)player2Position.X, (int)player2Position.Y, (int)player2width, (int)player2height);
@@ -152,23 +177,38 @@ namespace PongGame
             {
                 ballPosition.X = player1Position.X + player1width;
                 ballVelocity.X *= -1;
+                float totalSpeed = ballVelocity.Length();
 
                 float paddleCenter = player1Position.Y + player1height / 2;
                 float ballCenter = ballPosition.Y + ballSize / 2;
                 float normalizedDiff = (ballCenter - paddleCenter) / (player1height / 2);
-                ballVelocity.Y = normalizedDiff * 300f;
+                Vector2 direction = new Vector2(Math.Sign(ballVelocity.X), normalizedDiff);
+                direction.Normalize();
+                ballVelocity=direction*totalSpeed;
             }
             else if (ballRect.Intersects(player2Rect))
-            {
+            {   
+                float totalSpeed = ballVelocity.Length();
                 ballPosition.X = player2Position.X - ballSize;
                 ballVelocity.X *= -1;
                 float paddleCenter = player2Position.Y + player2height / 2;
                 float ballCenter = ballPosition.Y + ballSize / 2;
                 float normalizedDiff = (ballCenter - paddleCenter) / (player2height / 2);
-                ballVelocity.Y = normalizedDiff * 300f;
+                Vector2 direction = new Vector2(Math.Sign(ballVelocity.X), normalizedDiff);
+                direction.Normalize();
+                ballVelocity=direction*totalSpeed;
             }
 
-            
+            if(ballPosition.X < -ballSize)
+            {
+                scorePlayer2++;
+                ResetBall();
+            }
+            else if(ballPosition.X > _graphics.PreferredBackBufferWidth)
+            {
+                scorePlayer1++;
+                ResetBall();
+            }
             previousMouseState = mouseState;
 
             base.Update(gameTime);
@@ -211,6 +251,9 @@ namespace PongGame
             
             _spriteBatch.Draw(player1Texture, player1Rect, Color.White);
             _spriteBatch.Draw(player2Texture, player2Rect, Color.White);
+            _spriteBatch.DrawString(font, $"{scorePlayer1}", new Vector2(500, 50), Color.White);
+            _spriteBatch.DrawString(font, $"{scorePlayer2}", new Vector2(650, 50), Color.White);
+
             _spriteBatch.Draw(ballTexture, ballRect, Color.White);
 
             _spriteBatch.End();
